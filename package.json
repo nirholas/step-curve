@@ -1,0 +1,30 @@
+{
+  "name": "step-curve",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A pool whose price moves in discrete steps instead of continuously, so there is no infinitesimal arbitrage to take and a quote holds still long enough to be worth quoting.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nirholas/step-curve.git"
+  },
+  "homepage": "https://step-curve.pages.dev",
+  "keywords": [
+    "uniswap",
+    "uniswap-v4",
+    "uniswap-hooks",
+    "defi",
+    "amm",
+    "solidity",
+    "curve",
+    "custom-curve",
+    "discrete-pricing",
+    "mev",
+    "oracle-free"
+  ],
+  "scripts": {
+    "build": "node web/build.mjs",
+    "contracts:build": "forge build",
+    "contracts:test": "forge test"
+  }
+}

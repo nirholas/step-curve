@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StepCurve: A pool whose price moves in discrete steps instead of continuously, so there is no infinitesimal arbitrage to take and a quote holds still long enough to be worth quoting</title>
+<meta name="description" content="A pool whose price moves in discrete steps instead of continuously, so there is no infinitesimal arbitrage to take and a quote holds still long enough to be worth quoting.">
+<link rel="canonical" href="https://step-curve.pages.dev/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#07080b">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="StepCurve">
+<meta property="og:title" content="StepCurve">
+<meta property="og:description" content="A pool whose price moves in discrete steps instead of continuously, so there is no infinitesimal arbitrage to take and a quote holds still long enough to be worth quoting.">
+<meta property="og:url" content="https://step-curve.pages.dev/">
+<meta property="og:image" content="https://step-curve.pages.dev/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="StepCurve">
+<meta name="twitter:description" content="A pool whose price moves in discrete steps instead of continuously, so there is no infinitesimal arbitrage to take and a quote holds still long enough to be worth quoting.">
+<meta name="twitter:image" content="https://step-curve.pages.dev/og.png">
+
+<link rel="stylesheet" href="/assets/site.css">
+<link rel="alternate" type="text/plain" title="For language models" href="/llms.txt">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareSourceCode","name":"StepCurve","description":"A pool whose price moves in discrete steps instead of continuously, so there is no infinitesimal arbitrage to take and a quote holds still long enough to be worth quoting.","url":"https://step-curve.pages.dev","codeRepository":"https://github.com/nirholas/step-curve","programmingLanguage":"Solidity","runtimePlatform":"Ethereum Virtual Machine","license":"https://opensource.org/licenses/MIT","keywords":"curve, custom-curve, discrete-pricing, mev, oracle-free","isPartOf":{"@type":"WebSite","name":"HookForge","url":"https://hookforge.pages.dev"}}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="masthead">
+  <div class="shell masthead__inner">
+    <a class="brand" href="/">StepCurve</a>
+    <nav aria-label="Primary">
+      <a href="#how">How it works</a>
+      <a href="#using">Using it</a>
+      <a href="#deploy">Deploy</a>
+      <a href="https://github.com/nirholas/step-curve" rel="noopener">GitHub</a>
+      <a href="https://hookforge.pages.dev" rel="noopener">Catalogue</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="stage">
+    <div class="scene">
+      <canvas data-permissions="{}" aria-hidden="true"></canvas>
+      <p class="scene__fallback">StepCurve implements 0 of the fourteen Uniswap v4 callbacks: none.</p>
+    </div>
+    <p class="scene__hint">drag to orbit</p>
+
+  <section class="shell hero">
+    <p class="eyebrow">Uniswap v4 hook &middot; Curves</p>
+    <h1>StepCurve</h1>
+    <p class="lede">A pool whose price moves in discrete steps instead of continuously, so there is no infinitesimal arbitrage to take and a quote holds still long enough to be worth quoting.</p>
+    <div class="cta-row">
+      <a class="btn btn--primary" href="https://github.com/nirholas/step-curve" rel="noopener">Source on GitHub</a>
+      <a class="btn" href="#using">Use it in a pool</a>
+      <a class="btn" href="/hook.json">Manifest JSON</a>
+    </div>
+
+    <dl class="stats">
+      <div class="stat"><dt>Family</dt><dd>Curves</dd></div>
+      <div class="stat"><dt>Callbacks</dt><dd>0 of 14</dd></div>
+      <div class="stat"><dt>Fee</dt><dd>static</dd></div>
+      <div class="stat"><dt>Admin keys</dt><dd>none</dd></div>
+      <div class="stat"><dt>Licence</dt><dd>MIT</dd></div>
+    </dl>
+  </section>
+  </div>
+
+  <section class="shell">
+    <h2 id="how">How it works</h2>
+      <p>A constant-product pool changes its price on every swap, by any amount, however small. That is elegant and it has a cost that falls entirely on the people providing the liquidity: the price is always slightly wrong by an amount somebody can capture, and the smaller the increment the more often it is worth capturing. Continuous pricing is what makes an AMM permanently arbitrageable rather than occasionally.</p>
+      <p>Every other market prices in ticks. Equities trade in cents, bonds in thirty-seconds, futures in whatever the exchange decided, and the reason is not tradition: a minimum increment means a quote is worth something for a while, because moving the price at all costs a whole increment rather than a rounding error. This pool prices in increments.</p>
+      <p>The quote is constant across a band of inventory `stepSize` wide and falls by `stepX96` when the band is crossed, so: price(reserve0) = max(minPriceX96, startPriceX96 - (reserve0 / stepSize) * stepX96) Within a band the pool is a constant-sum market maker at a fixed price, which is to say it fills at exactly the quote with no slippage at all. A swap that would cross bands walks them, filling each at its own price. So a small trade sees a firm quote and no slippage, and a large trade sees exactly the depth the ladder was configured with.</p>
+      <p>The consequence for arbitrage is the point. An external price move smaller than one increment is not tradeable against this pool at all, because moving the price requires consuming a whole band. Providers are exposed to moves larger than the increment and immune to noise below it, which is the trade every quoting venue in the world makes.</p>
+      <p>Liquidity is fungible and proportional; see {ForgeCurveHook}. There are no ticks and no ranges, because the ladder is the range.</p>
+
+    <div class="callout callout--prior"><h3>Prior art</h3><p>Constant-sum hooks (Uniswap's own constant-sum example, the StableSwap and Orbital submissions) replace the curve with a different continuous one. Bancor's Carbon quotes discrete asymmetric ladders, off v4. Discrete tick pricing is universal outside crypto.</p>
+      <p>A v4 custom curve that is constant-sum inside a band and steps between bands, so a quote is firm below the increment and depth is exactly what was configured, is the contribution here.</p></div>
+    <div class="callout callout--warn"><h3>Where it does not help</h3><p>A swap that crosses many bands walks them one at a time, so gas grows with the number of bands crossed and a swap larger than `MAX_STEPS` bands reverts rather than filling partially. Size `stepSize` against the trades the pool expects. The ladder is also fixed at deployment: a pool whose asset moves far outside the configured range runs out of ladder and stops quoting on that side, which is honest but is not the same as a curve that quotes everywhere.</p></div>
+
+    <h2 id="using">Using it</h2>
+    <p>
+      Uniswap v4 removed <code>hookData</code> from <code>initialize</code>, so per-pool parameters arrive out of band.
+      Fix them for a pool key whose pool does not exist yet, then initialize. Nobody can change them afterwards,
+      including you.
+    </p>
+    <pre><code>poolManager.initialize(key, startingSqrtPriceX96);</code></pre>
+    
+
+    <h3>Parameters</h3>
+    <p>This hook takes no per-pool configuration.</p>
+
+    <h3>From TypeScript</h3>
+    <pre><code>npm i @hookforge/sdk
+
+import {getHook, hookAddress, poolKeyFor} from "@hookforge/sdk";
+
+const hook = getHook("step-curve");
+const key  = poolKeyFor({
+  hook: hookAddress("step-curve", 8453),   // Base
+  currencyA: USDC, currencyB: WETH,
+  tickSpacing: 60,
+});</code></pre>
+
+    <h2>What it reverts with</h2>
+    <table>
+        <thead><tr><th>Error</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>AlreadyInitialized()</code></td><td>Hook was already initialized.</td></tr>
+          <tr><td><code>AmountTooSmall()</code></td><td>A deposit was too small to mint any shares, or a withdrawal too small to return anything.</td></tr>
+          <tr><td><code>ERC20InsufficientAllowance(address,uint256,uint256)</code></td><td>Indicates a failure with the <code>spender</code>’s <code>allowance</code>. Used in transfers.</td></tr>
+          <tr><td><code>ERC20InsufficientBalance(address,uint256,uint256)</code></td><td>Indicates an error related to the current <code>balance</code> of a <code>sender</code>. Used in transfers.</td></tr>
+          <tr><td><code>ERC20InvalidApprover(address)</code></td><td>Indicates a failure with the <code>approver</code> of a token to be approved. Used in approvals.</td></tr>
+          <tr><td><code>ERC20InvalidReceiver(address)</code></td><td>Indicates a failure with the token <code>receiver</code>. Used in transfers.</td></tr>
+          <tr><td><code>ERC20InvalidSender(address)</code></td><td>Indicates a failure with the token <code>sender</code>. Used in transfers.</td></tr>
+          <tr><td><code>ERC20InvalidSpender(address)</code></td><td>Indicates a failure with the <code>spender</code> to be approved. Used in approvals.</td></tr>
+          <tr><td><code>ExpiredPastDeadline()</code></td><td>A liquidity modification order was attempted to be executed after the deadline.</td></tr>
+          <tr><td><code>InsufficientInitialLiquidity()</code></td><td>The first deposit must exceed the permanently locked minimum.</td></tr>
+          <tr><td><code>InsufficientReserves()</code></td><td>The ladder cannot fill this swap: the pool has run out of the currency being bought.</td></tr>
+          <tr><td><code>InvalidLadder()</code></td><td>A constructor argument was zero or inconsistent.</td></tr>
+          <tr><td><code>InvalidNativePayer(address)</code></td><td>The native currency was settled on behalf of a <code>payer</code> other than the contract paying it.</td></tr>
+          <tr><td><code>InvalidNativeValue()</code></td><td>Native currency was not sent with the correct amount.</td></tr>
+          <tr><td><code>LiquidityOnlyViaHook()</code></td><td>Liquidity was attempted to be added or removed via the <code>PoolManager</code> instead of the hook.</td></tr>
+          <tr><td><code>PoolNotInitialized()</code></td><td>Pool was not initialized.</td></tr>
+          <tr><td><code>SafeERC20FailedOperation(address)</code></td><td>An operation with an ERC-20 token failed.</td></tr>
+          <tr><td><code>SwapTooLarge()</code></td><td>The swap would cross more than <code>MAX_STEPS</code> bands. Split it, or the pool needs a wider <code>stepSize</code>.</td></tr>
+          <tr><td><code>TooMuchSlippage()</code></td><td>Principal delta of liquidity modification resulted in too much slippage.</td></tr></tbody>
+      </table>
+
+    <h2>The callbacks it claims</h2>
+    <p>
+      Uniswap v4 reads a hook's permissions from the low fourteen bits of its own address, which is why deploying one
+      means mining a CREATE2 salt. This hook claims 0, so every deployment of it has an address ending
+      in <code>0x0</code>.
+    </p>
+    <ul class="flags"><li class="flag">beforeInitialize</li><li class="flag">afterInitialize</li><li class="flag">beforeAddLiquidity</li><li class="flag">afterAddLiquidity</li><li class="flag">beforeRemoveLiquidity</li><li class="flag">afterRemoveLiquidity</li><li class="flag">beforeSwap</li><li class="flag">afterSwap</li><li class="flag">beforeDonate</li><li class="flag">afterDonate</li><li class="flag">beforeSwapReturnsDelta</li><li class="flag">afterSwapReturnsDelta</li><li class="flag">afterAddLiquidityReturnsDelta</li><li class="flag">afterRemoveLiquidityReturnsDelta</li></ul>
+
+    <h2>It says what it is, on-chain</h2>
+    <p>
+      Nothing about a hook's address tells an indexer, a wallet, a router or an agent what the pool does, which is why
+      hook discovery today is a curated list. This hook answers for itself, in one <code>eth_call</code>, with no
+      registry in the loop.
+    </p>
+    <pre><code>cast call $HOOK "hookName()(string)"    # StepCurve
+cast call $HOOK "specURI()(string)"     # https://step-curve.pages.dev/hook.json
+cast call $HOOK "hookTags()(string[])"  # curve, custom-curve, discrete-pricing, mev, oracle-free</code></pre>
+
+    <h2 id="deploy">Build, test and deploy</h2>
+    <pre><code>git clone --recurse-submodules https://github.com/nirholas/step-curve
+cd step-curve
+forge build &amp;&amp; forge test
+
+# Dry run: mines the salt, prints the address, sends nothing.
+forge script script/Deploy.s.sol --rpc-url $RPC_URL
+
+# For real.
+forge script script/Deploy.s.sol --rpc-url $RPC_URL --broadcast --verify</code></pre>
+
+    <div class="callout callout--warn">
+      <h3>Status</h3>
+      <p>
+        <strong>Unaudited.</strong> Built to an audited shape, on OpenZeppelin's audited hook bases, and tested against
+        a real <code>PoolManager</code>. No third party has reviewed it. Read "where it does not help" above before
+        putting money behind it. Not affiliated with Uniswap Labs.
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="shell">
+    <p>
+      <a href="https://github.com/nirholas/step-curve" rel="noopener">Source</a> &middot;
+      <a href="/hook.json">Manifest</a> &middot;
+      <a href="/llms.txt">llms.txt</a> &middot;
+      <a href="https://hookforge.pages.dev" rel="noopener">The rest of the catalogue</a>
+    </p>
+    <p>MIT licensed. Not affiliated with Uniswap Labs.</p>
+  </div>
+</footer>
+<script type="module" src="/assets/scene.js"></script>
+</body>
+</html>
