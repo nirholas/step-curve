@@ -45,8 +45,8 @@
 <main id="main">
   <div class="stage">
     <div class="scene">
-      <canvas data-permissions="{}" aria-hidden="true"></canvas>
-      <p class="scene__fallback">StepCurve implements 0 of the fourteen Uniswap v4 callbacks: none.</p>
+      <canvas data-permissions="{&quot;afterRemoveLiquidityReturnsDelta&quot;:false,&quot;afterAddLiquidityReturnsDelta&quot;:false,&quot;afterSwapReturnsDelta&quot;:false,&quot;beforeSwapReturnsDelta&quot;:true,&quot;afterDonate&quot;:false,&quot;beforeDonate&quot;:false,&quot;afterSwap&quot;:false,&quot;beforeSwap&quot;:true,&quot;afterRemoveLiquidity&quot;:false,&quot;beforeRemoveLiquidity&quot;:true,&quot;afterAddLiquidity&quot;:false,&quot;beforeAddLiquidity&quot;:true,&quot;afterInitialize&quot;:false,&quot;beforeInitialize&quot;:true}" aria-hidden="true"></canvas>
+      <p class="scene__fallback">StepCurve implements 5 of the fourteen Uniswap v4 callbacks: beforeInitialize, beforeAddLiquidity, beforeRemoveLiquidity, beforeSwap, beforeSwapReturnsDelta.</p>
     </div>
     <p class="scene__hint">drag to orbit</p>
 
@@ -62,7 +62,7 @@
 
     <dl class="stats">
       <div class="stat"><dt>Family</dt><dd>Curves</dd></div>
-      <div class="stat"><dt>Callbacks</dt><dd>0 of 14</dd></div>
+      <div class="stat"><dt>Callbacks</dt><dd>5 of 14</dd></div>
       <div class="stat"><dt>Fee</dt><dd>static</dd></div>
       <div class="stat"><dt>Admin keys</dt><dd>none</dd></div>
       <div class="stat"><dt>Licence</dt><dd>Apache-2.0</dd></div>
@@ -133,10 +133,10 @@ const key  = poolKeyFor({
     <h2>The callbacks it claims</h2>
     <p>
       Uniswap v4 reads a hook's permissions from the low fourteen bits of its own address, which is why deploying one
-      means mining a CREATE2 salt. This hook claims 0, so every deployment of it has an address ending
-      in <code>0x0</code>.
+      means mining a CREATE2 salt. This hook claims 5, so every deployment of it has an address ending
+      in <code>0x2a88</code>.
     </p>
-    <ul class="flags"><li class="flag">beforeInitialize</li><li class="flag">afterInitialize</li><li class="flag">beforeAddLiquidity</li><li class="flag">afterAddLiquidity</li><li class="flag">beforeRemoveLiquidity</li><li class="flag">afterRemoveLiquidity</li><li class="flag">beforeSwap</li><li class="flag">afterSwap</li><li class="flag">beforeDonate</li><li class="flag">afterDonate</li><li class="flag">beforeSwapReturnsDelta</li><li class="flag">afterSwapReturnsDelta</li><li class="flag">afterAddLiquidityReturnsDelta</li><li class="flag">afterRemoveLiquidityReturnsDelta</li></ul>
+    <ul class="flags"><li class="flag flag--on">beforeInitialize</li><li class="flag">afterInitialize</li><li class="flag flag--on">beforeAddLiquidity</li><li class="flag">afterAddLiquidity</li><li class="flag flag--on">beforeRemoveLiquidity</li><li class="flag">afterRemoveLiquidity</li><li class="flag flag--on">beforeSwap</li><li class="flag">afterSwap</li><li class="flag">beforeDonate</li><li class="flag">afterDonate</li><li class="flag flag--on">beforeSwapReturnsDelta</li><li class="flag">afterSwapReturnsDelta</li><li class="flag">afterAddLiquidityReturnsDelta</li><li class="flag">afterRemoveLiquidityReturnsDelta</li></ul>
 
     <h2>It says what it is, on-chain</h2>
     <p>
@@ -168,6 +168,40 @@ forge script script/Deploy.s.sol --rpc-url $RPC_URL --broadcast --verify</code><
       </p>
     </div>
   </section>
+
+  <section class="shell">
+    <h2 id="try">Try it</h2>
+    <p>
+      This is the hook running, not a picture of it. Connect a wallet on a chain it is deployed to, or bring the whole
+      stack up locally in one command and use it with no funds and no wallet risk at all.
+    </p>
+    <div class="demo" data-demo="step-curve">
+      <div class="panel panel--empty">
+        <p>Loading the demo… if this does not change, JavaScript is blocked and the demo cannot run.</p>
+      </div>
+    </div>
+    <details class="raw">
+      <summary>Run the whole thing locally</summary>
+      <pre><code>git clone --recurse-submodules https://github.com/nirholas/step-curve
+cd step-curve
+
+anvil &amp;
+forge script script/DeployLocal.s.sol --rpc-url http://127.0.0.1:8545 --broadcast \
+  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+node web/build.mjs &amp;&amp; npx serve web/dist</code></pre>
+      <p class="muted">
+        The deploy script writes <code>web/local.json</code> itself and the build merges it, so the page points at the
+        chain you just created without you editing anything. Point a wallet at
+        <code>http://127.0.0.1:8545</code> and every button on this page works.
+      </p>
+      <p class="muted">
+        Anvil's first account is pre-funded and its key is public by design. Never use it anywhere real.
+      </p>
+    </details>
+  </section>
+  <script type="application/json" id="deployments">{"chains":{},"demo":{"panel":"curve","title":"A quote that holds still","lede":"This pool prices in increments. Inside a band the quote is firm and a swap has no slippage at all; crossing one steps the price.","stats":[{"name":"currentPriceX96","label":"Quoted price","format":"q96"}],"localDeploy":{"flags":"Hooks.BEFORE_INITIALIZE_FLAG | Hooks.BEFORE_ADD_LIQUIDITY_FLAG | Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG | Hooks.BEFORE_SWAP_FLAG | Hooks.BEFORE_SWAP_RETURNS_DELTA_FLAG","curve":true,"constructorArgs":"IPoolManager(address(manager)), 2 * Q96, Q96 / 100, Q96 / 2, 1e18, 30, \"Step Curve LP\", \"STEP-LP\"","dynamicFee":false}}}</script>
+  <script type="module" src="/assets/demo.js"></script>
 </main>
 
 <footer class="foot">

@@ -4,9 +4,13 @@
 
 Uniswap v4 reads a hook's permissions from the low fourteen bits of its address, and the `PoolManager` rejects a pool whose hook address does not match the permissions the hook declares. You cannot deploy a hook to whatever address you happen to get: you mine a CREATE2 salt until the address has the right bits, then deploy with that salt through a deterministic factory.
 
-This hook needs `0x0` in those bits, from claiming:
+This hook needs `0x2a88` in those bits, from claiming:
 
-- none
+- `beforeInitialize`
+- `beforeAddLiquidity`
+- `beforeRemoveLiquidity`
+- `beforeSwap`
+- `beforeSwapReturnsDelta`
 
 ## Running it
 

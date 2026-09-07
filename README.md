@@ -70,11 +70,15 @@ This hook takes no per-pool configuration.
 
 ## The callbacks it claims
 
-Uniswap v4 reads a hook's permissions from the low fourteen bits of its own address, which is why deploying one means mining a CREATE2 salt. This hook claims 0 of the fourteen:
+Uniswap v4 reads a hook's permissions from the low fourteen bits of its own address, which is why deploying one means mining a CREATE2 salt. This hook claims 5 of the fourteen:
 
-- none
+- `beforeInitialize`
+- `beforeAddLiquidity`
+- `beforeRemoveLiquidity`
+- `beforeSwap`
+- `beforeSwapReturnsDelta`
 
-Mask: `0x0`, so every deployment of this hook has an address ending in those bits.
+Mask: `0x2a88`, so every deployment of this hook has an address ending in those bits.
 
 ## It says what it is, on-chain
 
