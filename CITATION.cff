@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: "step-curve"
+abstract: "A pool whose price moves in discrete steps instead of continuously, so there is no infinitesimal arbitrage to take and a quote holds still long enough to be worth quoting."
+license: Apache-2.0
+repository-code: "https://github.com/nirholas/step-curve"
+url: "https://three.ws"
+authors:
+  - name: three.ws
+    website: "https://three.ws"
